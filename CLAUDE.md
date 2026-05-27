@@ -15,10 +15,11 @@ file and the code is the main thing to avoid.
 
 ## 1. Data model
 
-Two Google Sheets tabs feed the dashboard. The columns below are the live
-schema (verified from sample exports on 2026-05-27).
+**Two separate Google Sheets** feed the dashboard — one for website leads,
+one for calls. Each has a single relevant tab. The columns below are the
+live schema (verified from sample exports on 2026-05-27).
 
-### Tab: `Book Appointment` (website leads)
+### Sheet 1: Website Leads — tab `Book Appointment`
 
 | Column | Type | Values / format | Notes |
 |---|---|---|---|
@@ -28,7 +29,7 @@ schema (verified from sample exports on 2026-05-27).
 | `Lead Source` | string | `SEO` / `google_paid` / `chatgpt.com` / future values | see source mapping |
 | `Lead Date` | string | `"April 15, 2026 at 3:15 PM"` | human-readable; parse with `date-fns` `parse()` |
 
-### Tab: `Calls - May 2026`
+### Sheet 2: Calls Leads — tab `Calls - May 2026`
 
 | Column | Type | Values / format | Notes |
 |---|---|---|---|
@@ -73,18 +74,22 @@ SEO (calls)    = anything else (Organic Search, future values)
 ## 2. Architecture
 
 ```
-┌─────────────────┐   HTTPS    ┌──────────────────┐   Sheets API   ┌──────────────┐
-│  React frontend │ ─────────▶ │  Express backend │ ─────────────▶ │ Google Sheet │
-│  (Vite, :5173)  │            │  (Node, :3001)   │  (service acct)│              │
-└─────────────────┘            └──────────────────┘                └──────────────┘
+                                                                ┌───────────────────┐
+┌─────────────────┐   HTTPS    ┌──────────────────┐  Sheets API │ Sheet 1: Website  │
+│  React frontend │ ─────────▶ │  Express backend │ ──────────▶ │ (Book Appointment)│
+│  (Vite, :5173)  │            │  (Node, :3001)   │             ├───────────────────┤
+└─────────────────┘            │  (service acct)  │ ──────────▶ │ Sheet 2: Calls    │
+                               └──────────────────┘             │ (Calls - May 2026)│
+                                                                └───────────────────┘
 ```
 
 - **Browser never sees the service account key.** All Sheets calls go
   through the Express server. The key lives in `server/.env` only.
-- Frontend hits `GET /api/leads`, gets back a single normalized JSON
-  payload containing **all** rows from both tabs, then applies the
-  date-range filter client-side before counting.
-- Backend caches the Sheets response in-memory for 60 seconds. The
+- The backend makes **two** Sheets API calls (one per sheet), merges
+  the normalized results, and returns a single `/api/leads` response.
+- Frontend hits `GET /api/leads`, gets back all rows from both sheets,
+  then applies the date-range filter client-side before counting.
+- Backend caches the merged response in-memory for 60 seconds. The
   Refresh button bypasses the cache with `?fresh=1`.
 - Date filtering is client-side because the dataset is small
   (hundreds of rows). No server-side filter needed in v1.
@@ -103,8 +108,8 @@ parabanks-dashboard/
 ├── server/
 │   ├── package.json
 │   ├── index.js              # Express app, /api/leads, /api/health
-│   ├── sheets.js             # googleapis wrapper + in-memory cache
-│   └── .env                  # GOOGLE_SHEETS_ID, GOOGLE_SERVICE_ACCOUNT_KEY (gitignored)
+│   ├── sheets.js             # googleapis wrapper (reads both sheets) + in-memory cache
+│   └── .env                  # GOOGLE_*_SHEET_ID, GOOGLE_SERVICE_ACCOUNT_KEY (gitignored)
 └── client/
     ├── package.json
     ├── vite.config.js        # proxy /api → http://localhost:3001
@@ -194,7 +199,8 @@ Identical structure to SEO, filtered to PPC source.
 
 ## 6. Backend contract
 
-`GET /api/leads` returns **all** rows, unfiltered by date:
+`GET /api/leads` reads **both Google Sheets in parallel** (`Promise.all`),
+normalizes each, and returns the merged result, unfiltered by date:
 
 ```json
 {
@@ -229,6 +235,10 @@ never deals with raw sheet strings. Rows that fail to parse are dropped
 with a `console.warn` on the server — never thrown — so one bad row
 doesn't kill the dashboard.
 
+If one of the two Sheets API calls fails, log the error and return the
+other sheet's data with an `errors` array in the response — don't 500
+the whole endpoint. Half a dashboard is better than no dashboard.
+
 `?fresh=1` skips the 60s in-memory cache.
 
 `GET /api/health` returns `{ ok: true }` for sanity checks.
@@ -240,19 +250,28 @@ doesn't kill the dashboard.
 `.env.example` (copy to `server/.env`):
 
 ```
-GOOGLE_SHEETS_ID=1abc...                        # the spreadsheet ID from the URL
+# Website leads
+GOOGLE_WEBSITE_SHEET_ID=1abc...                 # spreadsheet ID from the URL
 GOOGLE_WEBSITE_TAB=Book Appointment             # exact tab name
+
+# Calls leads
+GOOGLE_CALLS_SHEET_ID=1xyz...                   # different spreadsheet ID
 GOOGLE_CALLS_TAB=Calls - May 2026               # exact tab name
-GOOGLE_SERVICE_ACCOUNT_KEY=                     # paste the FULL JSON, single line, in quotes
+
+# Auth (same service account reads both sheets)
+GOOGLE_SERVICE_ACCOUNT_KEY=                     # paste the FULL JSON, single line, in single quotes
+
 PORT=3001
 CACHE_TTL_SECONDS=60
 ```
 
 Setup steps for the human (also in README):
 1. Create a GCP project → enable Google Sheets API.
-2. Create a service account → download the JSON key.
-3. Share the Google Sheet with the service account's email (Viewer).
-4. Paste the spreadsheet ID + key into `server/.env`.
+2. Create one service account → download the JSON key.
+3. Share **both** Google Sheets with the service account's email (Viewer).
+   This is the most common step to miss — if you forget either, that
+   sheet's API call returns 403.
+4. Paste both spreadsheet IDs + the key into `server/.env`.
 
 ---
 
@@ -264,9 +283,9 @@ Each step ends with a runnable, testable artifact. Don't skip ahead.
    proxy, ESLint. Verify `npm run dev` boots both server and client.
 2. **Backend, mock first** — `/api/leads` returns hardcoded JSON matching
    the contract. Frontend fetches and shows raw counts.
-3. **Backend, real Sheets** — replace mock with googleapis call against
-   `Book Appointment` and `Calls - May 2026`. Normalize per contract.
-   Add 60s cache.
+3. **Backend, real Sheets** — replace mock with two parallel googleapis
+   calls (one per sheet). Normalize per contract. Add 60s cache.
+   Test that auth works against both sheets.
 4. **Date range filter + transforms** — `dates.js`, `transform.js`,
    `DateRangeFilter.jsx`. Wire the date range as `useState` in `App.jsx`,
    passed down. No other UI sections yet — just verify the filter
@@ -292,8 +311,8 @@ grows.
 If asked, push back. Out of scope until v2:
 
 - **Months other than May 2026.** The date filter is hard-floored at
-  May 1 and the calls tab name encodes the month. June will need a
-  decision on tab strategy (one tab per month? rolling tab?).
+  May 1 and the calls sheet name encodes the month. June will need a
+  decision on sheet strategy (one sheet per month? rolling sheet?).
 - Charts / time series
 - Export to CSV
 - Multi-clinic support
@@ -306,6 +325,6 @@ If asked, push back. Out of scope until v2:
 ## 10. Open questions
 
 None blocking — clear to start step 1. Revisit when planning v2:
-- How will new months be added (new tab per month vs one rolling tab)?
+- How will new months be added (new sheet per month vs one rolling sheet)?
 - Should the dashboard get a tiny chart strip (daily new patients) once
   multi-month data exists?

@@ -19,6 +19,7 @@ client/.env
 *-service-account.json
 google-credentials.json
 service-account-*.json
+server-account-key.json
 
 # Logs
 *.log
