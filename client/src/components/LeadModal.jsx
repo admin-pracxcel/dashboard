@@ -22,7 +22,7 @@ export default function LeadModal({ title, type, leads, onClose }) {
       onClick={onClose}
     >
       <div
-        className="relative mx-4 mb-12 w-full max-w-3xl animate-scale-in overflow-hidden rounded-2xl border border-surface-border bg-surface-card shadow-2xl"
+        className="relative mx-4 mb-12 w-full max-w-3xl animate-scale-in overflow-hidden rounded-2xl border border-surface-border bg-white shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

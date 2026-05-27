@@ -27,12 +27,12 @@ export default function SourceSection({
 
   return (
     <section>
-      <div className="mb-4 flex items-center gap-3">
-        <span className={`inline-flex rounded-lg px-3 py-1 text-xs font-bold uppercase tracking-wider ${c.tagBg}`}>
+      <div className="mb-5 flex items-baseline gap-3">
+        <span className={`inline-flex rounded-lg px-3 py-1.5 text-sm font-bold uppercase tracking-wider ${c.tagBg}`}>
           {title}
         </span>
         {subtitle && (
-          <span className="text-sm text-gray-400">{subtitle}</span>
+          <span className="text-base font-medium text-gray-600">{subtitle}</span>
         )}
       </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

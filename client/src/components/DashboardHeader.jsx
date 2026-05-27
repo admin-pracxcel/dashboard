@@ -6,9 +6,9 @@ export default function DashboardHeader({ fetchedAt, isRefreshing, onRefresh }) 
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand">
-            Leads Intelligence
+            IntelliLens
           </p>
-          <h1 className="mt-1 font-display text-4xl text-gray-900 md:text-5xl">
+          <h1 className="mt-1 font-display text-4xl md:text-5xl" style={{ color: '#00a4e0' }}>
             Parabanks Dental
           </h1>
           <p className="mt-2 text-sm text-gray-400">

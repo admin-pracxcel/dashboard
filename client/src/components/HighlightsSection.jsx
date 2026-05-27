@@ -1,8 +1,8 @@
 import StatCard from './StatCard';
 
-export default function HighlightsSection({ totalNewPatients, missedOpportunities }) {
+export default function HighlightsSection({ totalNewPatients, missedOpportunities, onViewMissed }) {
   return (
-    <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+    <div className="grid grid-cols-1 gap-5 md:grid-cols-2 [&>div>div]:h-full">
       <div className="animate-slide-up stagger-2 opacity-0">
         <StatCard
           label="New Patients"
@@ -17,6 +17,8 @@ export default function HighlightsSection({ totalNewPatients, missedOpportunitie
           value={missedOpportunities}
           sublabel="Unanswered or abandoned calls"
           accent="rose"
+          buttonLabel="View Missed Opportunity"
+          onButtonClick={onViewMissed}
         />
       </div>
     </div>

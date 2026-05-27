@@ -118,9 +118,12 @@ export default function App() {
           />
         </div>
 
+        <h2 className="mb-5 font-display text-2xl text-gray-900">Summary</h2>
+
         <HighlightsSection
           totalNewPatients={counts.totalNewPatients}
           missedOpportunities={counts.missedOpportunities}
+          onViewMissed={() => openModal('Missed Opportunities', 'calls', missed.calls)}
         />
 
         <div className="mt-10 space-y-10">
@@ -148,7 +151,7 @@ export default function App() {
 
         <div className="mt-16 border-t border-surface-border pt-6">
           <p className="text-center text-xs text-gray-300">
-            Parabanks Dental — Leads Intelligence — May 2026
+            Parabanks Dental — IntelliLens — May 2026
           </p>
         </div>
       </div>

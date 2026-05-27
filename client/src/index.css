@@ -4,7 +4,8 @@
 
 @layer base {
   body {
-    @apply bg-surface font-sans text-gray-800 antialiased;
+    background-color: #FAF9F7;
+    @apply font-sans text-gray-800 antialiased;
   }
 
   ::-webkit-scrollbar {
@@ -15,7 +16,8 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    @apply rounded-full bg-surface-border-light;
+    background-color: #D4D0C8;
+    @apply rounded-full;
   }
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-gray-400;
@@ -25,7 +27,9 @@
 @layer components {
   /* Card */
   .card {
-    @apply relative rounded-2xl border border-surface-border bg-surface-card;
+    @apply relative rounded-2xl;
+    background-color: #FFFFFF;
+    border: 1px solid #E8E5E0;
     box-shadow:
       0 1px 3px rgba(0, 0, 0, 0.04),
       0 4px 16px rgba(0, 0, 0, 0.03);
@@ -70,10 +74,14 @@
 
   /* Date inputs */
   input[type="date"] {
-    @apply rounded-lg border border-surface-border bg-surface-card px-3 py-2 text-sm text-gray-700;
+    @apply rounded-lg px-3 py-2 text-sm text-gray-700;
+    background-color: #FFFFFF;
+    border: 1px solid #E8E5E0;
   }
   input[type="date"]:focus {
-    @apply border-brand outline-none ring-2 ring-brand/20;
+    @apply outline-none;
+    border-color: #f58327;
+    box-shadow: 0 0 0 2px rgba(245, 131, 39, 0.2);
   }
 
   /* Shimmer skeleton */
