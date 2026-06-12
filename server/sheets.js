@@ -119,18 +119,22 @@ export async function fetchLeadsFromSheets({ fresh = false } = {}) {
   let website = [];
   let calls = [];
 
-  const [websiteResult, callsResult] = await Promise.allSettled([
+  const callsTabs = (process.env.GOOGLE_CALLS_TAB || 'Calls - May 2026')
+    .split(',')
+    .map((t) => t.trim());
+
+  const allFetches = [
     fetchSheet(
       auth,
       process.env.GOOGLE_WEBSITE_SHEET_ID,
       process.env.GOOGLE_WEBSITE_TAB || 'Book Appointment',
     ),
-    fetchSheet(
-      auth,
-      process.env.GOOGLE_CALLS_SHEET_ID,
-      process.env.GOOGLE_CALLS_TAB || 'Calls - May 2026',
+    ...callsTabs.map((tab) =>
+      fetchSheet(auth, process.env.GOOGLE_CALLS_SHEET_ID, tab),
     ),
-  ]);
+  ];
+
+  const [websiteResult, ...callsResults] = await Promise.allSettled(allFetches);
 
   if (websiteResult.status === 'fulfilled' && websiteResult.value.length > 0) {
     const [headers, ...rows] = websiteResult.value;
@@ -140,12 +144,15 @@ export async function fetchLeadsFromSheets({ fresh = false } = {}) {
     errors.push({ sheet: 'website', message: websiteResult.reason.message });
   }
 
-  if (callsResult.status === 'fulfilled' && callsResult.value.length > 0) {
-    const [headers, ...rows] = callsResult.value;
-    calls = rows.map((r) => normalizeCallLead(r, headers)).filter(Boolean);
-  } else if (callsResult.status === 'rejected') {
-    console.error('Calls sheet error:', callsResult.reason.message);
-    errors.push({ sheet: 'calls', message: callsResult.reason.message });
+  for (let i = 0; i < callsResults.length; i++) {
+    const result = callsResults[i];
+    if (result.status === 'fulfilled' && result.value.length > 0) {
+      const [headers, ...rows] = result.value;
+      calls.push(...rows.map((r) => normalizeCallLead(r, headers)).filter(Boolean));
+    } else if (result.status === 'rejected') {
+      console.error(`Calls sheet error (${callsTabs[i]}):`, result.reason.message);
+      errors.push({ sheet: `calls:${callsTabs[i]}`, message: result.reason.message });
+    }
   }
 
   const result = {
