@@ -151,7 +151,7 @@ export default function App() {
 
         <div className="mt-16 border-t border-surface-border pt-6">
           <p className="text-center text-xs text-gray-300">
-            Parabanks Dental — IntelliLens — May 2026
+            Parabanks Dental — IntelliLens
           </p>
         </div>
       </div>

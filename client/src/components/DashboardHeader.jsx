@@ -12,7 +12,7 @@ export default function DashboardHeader({ fetchedAt, isRefreshing, onRefresh }) 
             Parabanks Dental
           </h1>
           <p className="mt-2 text-sm text-gray-400">
-            May 2026 Performance Dashboard
+            Performance Dashboard
           </p>
         </div>
         <div className="flex items-center gap-4">
