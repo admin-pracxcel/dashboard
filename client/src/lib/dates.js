@@ -1,5 +1,4 @@
-/** Floor date for the dashboard — May 1, 2026 midnight local. */
-export const MIN_DATE = new Date('2026-05-01T00:00:00');
+export const MIN_DATE = new Date('2026-07-01T00:00:00');
 
 /** Today at midnight local (stable per render cycle). */
 export function today() {
