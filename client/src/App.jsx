@@ -88,8 +88,9 @@ export default function App() {
   const { website, calls, fetchedAt } = data;
 
   const filtered = applyDateRange({ website, calls }, dateRange.from, dateRange.to);
-  const newPatients = filterNewPatients(filtered);
-  const missed = filterMissedOpportunities(filtered);
+  const summaryBase = SHOW_SEO ? filtered : filterBySource(filtered, 'PPC');
+  const newPatients = filterNewPatients(summaryBase);
+  const missed = filterMissedOpportunities(summaryBase);
 
   const seo = filterBySource(filtered, 'SEO');
   const ppc = filterBySource(filtered, 'PPC');
