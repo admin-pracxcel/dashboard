@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useLeads } from './hooks/useLeads';
+import { useAdsMetrics } from './hooks/useAdsMetrics';
 import { today, toDateString, MIN_DATE } from './lib/dates';
 import {
   applyDateRange,
@@ -11,7 +12,10 @@ import DashboardHeader from './components/DashboardHeader';
 import DateRangeFilter from './components/DateRangeFilter';
 import HighlightsSection from './components/HighlightsSection';
 import SourceSection from './components/SourceSection';
+import AdsMetricsSection from './components/AdsMetricsSection';
 import LeadModal from './components/LeadModal';
+
+const SHOW_SEO = import.meta.env.VITE_SHOW_SEO !== 'false';
 
 const maxDate = today();
 
@@ -76,6 +80,8 @@ export default function App() {
   });
   const [modal, setModal] = useState(null);
 
+  const adsMetrics = useAdsMetrics(dateRange.from, dateRange.to);
+
   if (isLoading) return <LoadingSkeleton />;
   if (isError) return <ErrorState message={error.message} onRetry={refresh} />;
 
@@ -127,17 +133,19 @@ export default function App() {
         />
 
         <div className="mt-10 space-y-10">
+          {SHOW_SEO && (
+            <div className="animate-slide-up stagger-4 opacity-0">
+              <SourceSection
+                title="SEO"
+                subtitle="Google Searches, Google Business, AI Search"
+                websiteNewCount={counts.seo.websiteNew}
+                callsNewCount={counts.seo.callsNew}
+                onViewWebsite={() => openModal('SEO — Website Leads', 'website', seoNew.website)}
+                onViewCalls={() => openModal('SEO — Phone Calls', 'calls', seoNew.calls)}
+              />
+            </div>
+          )}
           <div className="animate-slide-up stagger-4 opacity-0">
-            <SourceSection
-              title="SEO"
-              subtitle="Google Searches, Google Business, AI Search"
-              websiteNewCount={counts.seo.websiteNew}
-              callsNewCount={counts.seo.callsNew}
-              onViewWebsite={() => openModal('SEO — Website Leads', 'website', seoNew.website)}
-              onViewCalls={() => openModal('SEO — Phone Calls', 'calls', seoNew.calls)}
-            />
-          </div>
-          <div className="animate-slide-up stagger-5 opacity-0">
             <SourceSection
               title="PPC"
               subtitle="Google Ads"
@@ -147,6 +155,11 @@ export default function App() {
               onViewCalls={() => openModal('PPC — Phone Calls', 'calls', ppcNew.calls)}
             />
           </div>
+          <AdsMetricsSection
+            data={adsMetrics.data}
+            isLoading={adsMetrics.isLoading}
+            isError={adsMetrics.isError}
+          />
         </div>
 
         <div className="mt-16 border-t border-surface-border pt-6">

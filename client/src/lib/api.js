@@ -4,3 +4,9 @@ export async function fetchLeads({ fresh = false } = {}) {
   if (!res.ok) throw new Error(`Failed to fetch leads: ${res.status}`);
   return res.json();
 }
+
+export async function fetchAdsMetrics(startDate, endDate) {
+  const res = await fetch(`/api/ads-metrics?startDate=${startDate}&endDate=${endDate}`);
+  if (!res.ok) throw new Error(`Failed to fetch ads metrics: ${res.status}`);
+  return res.json();
+}
