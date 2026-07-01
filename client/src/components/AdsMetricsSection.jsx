@@ -35,10 +35,6 @@ export default function AdsMetricsSection({ data, isLoading, isError }) {
 
   if (isError || !data) return null;
 
-  const totalConversions = data.conversionType
-    ? Object.values(data.conversionType).reduce((sum, v) => sum + v, 0)
-    : 0;
-
   return (
     <section className="animate-slide-up stagger-4 opacity-0">
       <div className="mb-5 flex items-baseline gap-3">
@@ -48,7 +44,7 @@ export default function AdsMetricsSection({ data, isLoading, isError }) {
         <span className="text-base font-medium text-gray-600">Performance Metrics</span>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <MetricCard label="Clicks" icon="🖱️">
           <AnimatedNumber value={data.clicks} />
         </MetricCard>
@@ -59,10 +55,6 @@ export default function AdsMetricsSection({ data, isLoading, isError }) {
 
         <MetricCard label="Ad Spend" icon="💰">
           ${data.adSpend.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-        </MetricCard>
-
-        <MetricCard label="Conversions" icon="🎯">
-          <AnimatedNumber value={totalConversions} />
         </MetricCard>
       </div>
 
