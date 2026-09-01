@@ -1,7 +1,7 @@
-import { MIN_DATE, toDateString } from '../lib/dates';
+import { DATA_START_DATE, toDateString } from '../lib/dates';
 
 export default function DateRangeFilter({ dateRange, maxDate, onChange }) {
-  const minStr = toDateString(MIN_DATE);
+  const minStr = toDateString(DATA_START_DATE);
   const maxStr = toDateString(maxDate);
 
   function handleChange(field, value) {

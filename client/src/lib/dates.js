@@ -1,4 +1,8 @@
-export const MIN_DATE = new Date((import.meta.env.VITE_START_DATE || '2026-07-01') + 'T00:00:00');
+export const DATA_START_DATE = new Date((import.meta.env.VITE_DATA_START_DATE || '2026-07-01') + 'T00:00:00');
+
+export const VIEW_START_DATE = new Date(
+  (import.meta.env.VITE_VIEW_START_DATE || import.meta.env.VITE_DATA_START_DATE || '2026-07-01') + 'T00:00:00',
+);
 
 /** Today at midnight local (stable per render cycle). */
 export function today() {

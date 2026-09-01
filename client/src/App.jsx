@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useLeads } from './hooks/useLeads';
 import { useAdsMetrics } from './hooks/useAdsMetrics';
-import { today, toDateString, MIN_DATE } from './lib/dates';
+import { today, toDateString, VIEW_START_DATE } from './lib/dates';
 import {
   applyDateRange,
   filterBySource,
@@ -75,7 +75,7 @@ function ErrorState({ message, onRetry }) {
 export default function App() {
   const { data, isLoading, isError, error, refresh, isRefreshing } = useLeads();
   const [dateRange, setDateRange] = useState({
-    from: toDateString(MIN_DATE),
+    from: toDateString(VIEW_START_DATE),
     to: toDateString(maxDate),
   });
   const [modal, setModal] = useState(null);
